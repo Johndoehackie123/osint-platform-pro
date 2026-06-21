@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 from app.utils import get_ip_info, get_whois_info, get_dns_records, search_username, analyze_website
 from app.optimizer import optimizer
+from app.tools import get_tools_status
 import time
 import logging
 import json
@@ -35,6 +36,10 @@ def identity_lookup():
 @app.route('/stats')
 def stats():
     return render_template('stats.html')
+
+@app.route('/tools')
+def tools_page():
+    return render_template('tools.html')
 
 @app.route('/api/ip/<ip>')
 def api_ip(ip):
@@ -89,6 +94,15 @@ def api_system_stats():
         logger.exception("Error in api_system_stats")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/tools-status')
+def api_tools_status():
+    try:
+        statuses = get_tools_status()
+        return jsonify(statuses)
+    except Exception as e:
+        logger.exception("Error in api_tools_status")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/optimize', methods=['POST'])
 def api_optimize():
     try:
@@ -108,8 +122,20 @@ def stream_stats():
                 yield f"data: {payload}\n\n"
                 time.sleep(1)
         except GeneratorExit:
-            # client disconnected
             logger.info("SSE client disconnected")
+    return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
+
+@app.route('/stream/tools')
+def stream_tools():
+    def event_stream():
+        try:
+            while True:
+                statuses = get_tools_status(force=True)
+                payload = json.dumps(statuses)
+                yield f"data: {payload}\n\n"
+                time.sleep(15)
+        except GeneratorExit:
+            logger.info("SSE tools client disconnected")
     return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
 
 # Generic error handler
