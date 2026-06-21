@@ -1,0 +1,6 @@
+Flask
+requests
+python-whois
+psutil
+gunicorn
+dnspython

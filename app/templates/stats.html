@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">System <span class="text-blue-500">Telemetry</span></h1>
+        <p class="text-zinc-400">Real-time resource monitoring and environment optimization for Render Free Tier.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="glass p-8 rounded-3xl border-b-8 border-blue-600">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-microchip text-blue-500"></i> Resource Usage
+            </h3>
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between text-sm mb-2 mono">
+                        <span>Memory (RAM)</span>
+                        <span id="ram-value">-- / 512 MB</span>
+                    </div>
+                    <div class="w-full bg-zinc-800 h-3 rounded-full overflow-hidden">
+                        <div id="ram-bar" class="progress-bar bg-blue-500 h-full w-0"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-2 mono">
+                        <span>CPU Load</span>
+                        <span id="cpu-value">-- %</span>
+                    </div>
+                    <div class="w-full bg-zinc-800 h-3 rounded-full overflow-hidden">
+                        <div id="cpu-bar" class="progress-bar bg-purple-500 h-full w-0"></div>
+                    </div>
+                </div>
+                <div class="pt-4 flex items-center justify-between">
+                    <span class="text-zinc-500 text-xs uppercase font-bold">System Health</span>
+                    <span id="health-status" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400">OPTIMAL</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass p-8 rounded-3xl border-b-8 border-emerald-600">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-emerald-500"></i> Adaptive Optimizer
+            </h3>
+            <p class="text-zinc-400 text-sm mb-6">
+                Our automatic optimization engine monitors memory spikes and triggers garbage collection to prevent OOM (Out of Memory) crashes on constrained environments.
+            </p>
+            <button onclick="triggerOptimize()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bolt"></i> Force Optimization
+            </button>
+            <div id="opt-msg" class="mt-4 text-center text-xs mono text-zinc-500 italic">
+                Ready for optimization...
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 glass p-6 rounded-2xl text-xs mono text-zinc-500">
+        <div class="flex items-center gap-2 mb-2 text-zinc-300">
+            <i class="fa-solid fa-circle-info"></i> Environment Notes:
+        </div>
+        <ul class="list-disc list-inside space-y-1">
+            <li>Running on Render Free Tier (512MB RAM / 0.1 CPU).</li>
+            <li>Gunicorn workers are tuned for low-memory footprint.</li>
+            <li>Caching is implemented to reduce external API latency.</li>
+            <li>Automatic GC (Garbage Collection) enabled.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    async function updateTelemetry() {
+        try {
+            const res = await fetch('/api/system-stats');
+            const data = await res.json();
+            
+            document.getElementById('ram-value').innerText = `${data.ram_used} / ${data.ram_limit} MB`;
+            document.getElementById('ram-bar').style.width = data.ram_percent + '%';
+            
+            document.getElementById('cpu-value').innerText = data.cpu_usage + ' %';
+            document.getElementById('cpu-bar').style.width = data.cpu_usage + '%';
+            
+            const health = document.getElementById('health-status');
+            health.innerText = data.status.toUpperCase();
+            if (data.status === 'Warning') {
+                health.className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400';
+            } else {
+                health.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400';
+            }
+        } catch (e) {
+            console.error("Telemetry error", e);
+        }
+    }
+
+    async function triggerOptimize() {
+        const msgDiv = document.getElementById('opt-msg');
+        msgDiv.innerText = 'Optimizing resources...';
+        try {
+            const res = await fetch('/api/optimize', { method: 'POST' });
+            const data = await res.json();
+            msgDiv.innerText = data.message;
+            updateTelemetry();
+        } catch (e) {
+            msgDiv.innerText = 'Optimization failed.';
+        }
+    }
+
+    setInterval(updateTelemetry, 2000);
+    updateTelemetry();
+</script>
+{% endblock %}
