@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus OSINT - Advanced Intelligence Framework</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b;
+            color: #fafafa;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass {
+            background: rgba(24, 24, 27, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(63, 63, 70, 0.5);
+        }
+        .neon-border {
+            border: 1px solid #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .progress-bar {
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-zinc-800">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-blue-500 text-2xl"></i>
+            <span class="text-xl font-bold tracking-tighter uppercase gradient-text">Nexus OSINT</span>
+        </div>
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+            <a href="/" class="hover:text-blue-400 transition-colors">Dashboard</a>
+            <a href="/ip-lookup" class="hover:text-blue-400 transition-colors">IP Intelligence</a>
+            <a href="/domain-lookup" class="hover:text-blue-400 transition-colors">Domain Intelligence</a>
+            <a href="/identity-lookup" class="hover:text-blue-400 transition-colors">Identity</a>
+            <a href="/stats" class="hover:text-blue-400 transition-colors">System Stats</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="sys-status" class="text-xs mono px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-400">
+                System: <span id="ram-stat">--</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-6 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="glass border-t border-zinc-800 py-6 text-center text-zinc-500 text-xs mono">
+        &copy; 2026 Nexus OSINT Framework | Optimized for Render Free Tier | v1.0.4-stable
+    </footer>
+
+    <script>
+        async function updateSystemStats() {
+            try {
+                const res = await fetch('/api/system-stats');
+                const data = await res.json();
+                document.getElementById('ram-stat').innerText = `${data.ram_used}MB / ${data.ram_limit}MB (${data.ram_percent}%)`;
+                if (data.ram_percent > 80) {
+                    document.getElementById('ram-stat').classList.add('text-red-500');
+                } else {
+                    document.getElementById('ram-stat').classList.remove('text-red-500');
+                }
+            } catch (e) {
+                console.error("Stats error", e);
+            }
+        }
+        setInterval(updateSystemStats, 5000);
+        updateSystemStats();
+
+        function showProgress(id, callback) {
+            const bar = document.getElementById(id + '-bar');
+            const text = document.getElementById(id + '-text');
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width < 90) {
+                    width += Math.random() * 15;
+                    bar.style.width = width + '%';
+                    text.innerText = `Analyzing... ${Math.round(width)}%`;
+                }
+            }, 200);
+
+            callback().then(() => {
+                clearInterval(interval);
+                bar.style.width = '100%';
+                text.innerText = 'Complete!';
+                setTimeout(() => {
+                    bar.style.width = '0%';
+                    text.innerText = 'Ready';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

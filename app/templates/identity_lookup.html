@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">Identity <span class="text-emerald-500">Lookup</span></h1>
+        <p class="text-zinc-400">Scan across multiple social platforms to locate digital footprints associated with a username.</p>
+    </div>
+
+    <div class="glass p-6 rounded-2xl mb-8">
+        <div class="flex flex-col md:flex-row gap-4">
+            <input type="text" id="username-input" placeholder="Enter Username (e.g. jsmith)" 
+                   class="flex-grow bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 focus:outline-none focus:border-emerald-500 mono">
+            <button onclick="runUsernameLookup()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-user-secret"></i> Scan Identity
+            </button>
+        </div>
+        
+        <div class="mt-6">
+            <div class="flex justify-between text-xs mono text-zinc-500 mb-2">
+                <span id="progress-text">Ready</span>
+                <span id="progress-percent">0%</span>
+            </div>
+            <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                <div id="progress-bar" class="progress-bar bg-emerald-500 h-full w-0"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="results" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Results injected here -->
+    </div>
+</div>
+
+<script>
+    async function runUsernameLookup() {
+        const username = document.getElementById('username-input').value;
+        if (!username) return alert("Please enter a username");
+
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.classList.add('hidden');
+        resultsDiv.innerHTML = '';
+
+        showProgress('progress', async () => {
+            const res = await fetch(`/api/username/${username}`);
+            const data = await res.json();
+
+            for (const [platform, info] of Object.entries(data)) {
+                const isFound = info.status === 'Found';
+                resultsDiv.innerHTML += `
+                    <div class="glass p-4 rounded-xl border-l-4 ${isFound ? 'border-emerald-500' : 'border-zinc-700'} transition-all hover:scale-105">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-zinc-200">${platform}</span>
+                            <span class="text-[10px] uppercase px-2 py-0.5 rounded ${isFound ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}">
+                                ${info.status}
+                            </span>
+                        </div>
+                        ${isFound ? `
+                            <a href="${info.url}" target="_blank" class="text-xs text-emerald-400 hover:underline mono break-all">
+                                ${info.url}
+                            </a>
+                        ` : `
+                            <span class="text-xs text-zinc-600 italic">No profile detected</span>
+                        `}
+                    </div>
+                `;
+            }
+            resultsDiv.classList.remove('hidden');
+        });
+    }
+</script>
+{% endblock %}
