@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 from app.utils import get_ip_info, get_whois_info, get_dns_records, search_username, analyze_website
 from app.optimizer import optimizer
 import time
 import logging
+import json
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO)
@@ -96,6 +97,20 @@ def api_optimize():
     except Exception as e:
         logger.exception("Error in api_optimize")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/stream/stats')
+def stream_stats():
+    def event_stream():
+        try:
+            while True:
+                stats = optimizer.get_stats()
+                payload = json.dumps(stats)
+                yield f"data: {payload}\n\n"
+                time.sleep(1)
+        except GeneratorExit:
+            # client disconnected
+            logger.info("SSE client disconnected")
+    return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
 
 # Generic error handler
 @app.errorhandler(500)

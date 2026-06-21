@@ -65,10 +65,9 @@
     </footer>
 
     <script>
-        async function updateSystemStats() {
+        // Use Server-Sent Events for live system stats when supported
+        function handleStatsUpdate(data) {
             try {
-                const res = await fetch('/api/system-stats');
-                const data = await res.json();
                 document.getElementById('ram-stat').innerText = `${data.ram_used}MB / ${data.ram_limit}MB (${data.ram_percent}%)`;
                 if (data.ram_percent > 80) {
                     document.getElementById('ram-stat').classList.add('text-red-500');
@@ -76,11 +75,45 @@
                     document.getElementById('ram-stat').classList.remove('text-red-500');
                 }
             } catch (e) {
-                console.error("Stats error", e);
+                console.error('Stats update error', e);
             }
         }
-        setInterval(updateSystemStats, 5000);
-        updateSystemStats();
+
+        if (typeof(EventSource) !== 'undefined') {
+            const es = new EventSource('/stream/stats');
+            es.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    handleStatsUpdate(data);
+                } catch (err) {
+                    console.error('SSE parse error', err);
+                }
+            };
+            es.onerror = (err) => {
+                console.warn('SSE error, falling back to polling', err);
+                // fallback to polling
+                setInterval(async () => {
+                    try {
+                        const res = await fetch('/api/system-stats');
+                        const data = await res.json();
+                        handleStatsUpdate(data);
+                    } catch (e) {
+                        console.error('Polling error', e);
+                    }
+                }, 5000);
+            };
+        } else {
+            // Fallback to polling for older browsers
+            setInterval(async () => {
+                try {
+                    const res = await fetch('/api/system-stats');
+                    const data = await res.json();
+                    handleStatsUpdate(data);
+                } catch (e) {
+                    console.error('Polling error', e);
+                }
+            }, 5000);
+        }
 
         function showProgress(id, callback) {
             const bar = document.getElementById(id + '-bar');
@@ -89,19 +122,22 @@
             const interval = setInterval(() => {
                 if (width < 90) {
                     width += Math.random() * 15;
-                    bar.style.width = width + '%';
-                    text.innerText = `Analyzing... ${Math.round(width)}%`;
+                    if (bar) bar.style.width = width + '%';
+                    if (text) text.innerText = `Analyzing... ${Math.round(width)}%`;
                 }
             }, 200);
 
             callback().then(() => {
                 clearInterval(interval);
-                bar.style.width = '100%';
-                text.innerText = 'Complete!';
+                if (bar) bar.style.width = '100%';
+                if (text) text.innerText = 'Complete!';
                 setTimeout(() => {
-                    bar.style.width = '0%';
-                    text.innerText = 'Ready';
+                    if (bar) bar.style.width = '0%';
+                    if (text) text.innerText = 'Ready';
                 }, 2000);
+            }).catch((err) => {
+                clearInterval(interval);
+                console.error('Progress callback error', err);
             });
         }
     </script>
