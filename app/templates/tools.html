@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="max-w-5xl mx-auto">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-2">OSINT Tools <span class="text-emerald-500">Status</span></h1>
-        <p class="text-zinc-400">Live availability of integrated OSINT tools and services. Green = reachable (HTTP 200); Red = unreachable.</p>
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">OSINT Tools <span class="text-emerald-500">Status</span></h1>
+            <p class="text-zinc-400">Live availability of integrated OSINT tools and services. Green = reachable; Red = unreachable.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="refresh-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white mono">Refresh</button>
+            <span id="last-checked" class="text-xs text-zinc-500 mono">Last checked: --</span>
+        </div>
     </div>
 
     <div id="tools-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -12,10 +18,22 @@
 </div>
 
 <script>
+    function timeAgo(ts) {
+        const s = Math.floor((Date.now()/1000) - ts);
+        if (s < 5) return 'just now';
+        if (s < 60) return `${s}s ago`;
+        const m = Math.floor(s/60);
+        if (m < 60) return `${m}m ago`;
+        const h = Math.floor(m/60);
+        return `${h}h ago`;
+    }
+
     function renderTools(tools) {
         const container = document.getElementById('tools-list');
         container.innerHTML = '';
+        let latest = 0;
         tools.forEach(t => {
+            latest = Math.max(latest, t.checked_at || 0);
             const el = document.createElement('div');
             el.className = 'glass p-4 rounded-xl flex items-start gap-4';
             el.innerHTML = `
@@ -28,10 +46,12 @@
                         </div>
                         <div class="text-xs mono text-zinc-400">${t.code ? 'HTTP ' + t.code : (t.error ? 'Error' : '')}</div>
                     </div>
+                    <div class="text-zinc-500 text-xs mono mt-2">Checked: ${timeAgo(t.checked_at || (Date.now()/1000))}</div>
                 </div>
             `;
             container.appendChild(el);
         });
+        document.getElementById('last-checked').innerText = 'Last checked: ' + (latest ? timeAgo(latest) : '--');
     }
 
     async function fetchTools() {
@@ -43,6 +63,18 @@
             console.error('Tools fetch error', e);
         }
     }
+
+    document.getElementById('refresh-btn').addEventListener('click', async () => {
+        try {
+            const res = await fetch('/stream/tools');
+            // trigger a forced fetch via API as fallback
+            await fetch('/api/tools-status');
+            fetchTools();
+        } catch (e) {
+            console.error('Manual refresh error', e);
+            fetchTools();
+        }
+    });
 
     // Try SSE first for live updates
     if (typeof(EventSource) !== 'undefined') {

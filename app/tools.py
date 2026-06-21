@@ -10,69 +10,51 @@ _cache = {
 
 TOOLS = [
     {
-        'id': 'maltego',
-        'name': 'Maltego',
-        'description': 'Visual link analysis and entity mapping (commercial).',
-        'check_url': 'https://www.maltego.com/'
+        'id': 'ip-api',
+        'name': 'IP-API',
+        'description': 'Free IP geolocation API (no key, limited rate).',
+        'check_url': 'http://ip-api.com/json/8.8.8.8'
     },
     {
-        'id': 'sociallinks',
-        'name': 'Social Links (Crimewall)',
-        'description': 'Browser-based OSINT suite for social analysis.',
-        'check_url': 'https://sociallinks.io/'
+        'id': 'ipwhois',
+        'name': 'ipwho.is',
+        'description': 'IP geolocation and ASN service (no key for basic JSON).',
+        'check_url': 'https://ipwho.is/8.8.8.8'
     },
     {
-        'id': 'shadowdragon',
-        'name': 'ShadowDragon',
-        'description': 'Enterprise OSINT & identity resolution.',
-        'check_url': 'https://shadowdragon.io/'
+        'id': 'dns_google',
+        'name': 'Google DNS over HTTPS',
+        'description': 'DNS-over-HTTPS resolver by Google (no key).',
+        'check_url': 'https://dns.google/resolve?name=example.com&type=A'
     },
     {
-        'id': 'shodan',
-        'name': 'Shodan',
-        'description': 'Search engine for internet-connected devices (has API).',
-        'check_url': 'https://www.shodan.io/'
+        'id': 'cloudflare_doh',
+        'name': 'Cloudflare DNS over HTTPS',
+        'description': 'Cloudflare DOH endpoint (no key).',
+        'check_url': 'https://cloudflare-dns.com/dns-query?name=example.com&type=A'
     },
     {
-        'id': 'censys',
-        'name': 'Censys',
-        'description': 'Network and certificate search (REST API).',
-        'check_url': 'https://censys.io/'
+        'id': 'crtsh',
+        'name': 'crt.sh (Certificate Transparency)',
+        'description': 'Certificate transparency search (public, no key).',
+        'check_url': 'https://crt.sh/?q=example.com&output=json'
     },
     {
-        'id': 'intelx',
-        'name': 'IntelX',
-        'description': 'Multisource search (leaks, social, email).',
-        'check_url': 'https://intelx.io/'
-    },
-    {
-        'id': 'securitytrails',
-        'name': 'SecurityTrails',
-        'description': 'Domain/subdomain and passive DNS API.',
-        'check_url': 'https://securitytrails.com/'
-    },
-    {
-        'id': 'whoisxml',
-        'name': 'WhoisXML API',
-        'description': 'WHOIS and domain intelligence REST API.',
-        'check_url': 'https://whoisxmlapi.com/'
+        'id': 'rdap_org',
+        'name': 'RDAP (rdap.org)',
+        'description': 'Registration Data Access Protocol lookup (no key).',
+        'check_url': 'https://rdap.org/domain/example.com'
     },
     {
         'id': 'sherlock',
-        'name': 'Sherlock',
-        'description': 'Username search across many services (open-source).',
+        'name': 'Sherlock (GitHub)',
+        'description': 'Username discovery project (repo reachable).',
         'check_url': 'https://github.com/sherlock-project/sherlock'
     },
     {
-        'id': 'social-analyzer',
-        'name': 'Social Analyzer',
-        'description': 'Username/profile analysis across social networks.',
-        'check_url': 'https://github.com/qeeqbox/social-analyzer'
-    },
-    {
         'id': 'exiftool',
-        'name': 'ExifTool',
-        'description': 'Media metadata extraction tool (local).',
+        'name': 'ExifTool (Website)',
+        'description': 'Metadata extraction tool site.',
         'check_url': 'https://exiftool.org/'
     }
 ]
@@ -82,10 +64,10 @@ HEADERS = {
 }
 
 
-def _check_url(url, timeout=5):
+def _check_url(url, timeout=6):
     try:
         r = requests.get(url, headers=HEADERS, timeout=timeout)
-        return {'up': r.status_code == 200, 'code': r.status_code}
+        return {'up': r.status_code >= 200 and r.status_code < 400, 'code': r.status_code}
     except Exception as e:
         return {'up': False, 'error': str(e)}
 

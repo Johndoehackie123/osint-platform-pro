@@ -3,16 +3,19 @@
 <div class="max-w-5xl mx-auto">
     <div class="mb-8">
         <h1 class="text-3xl font-bold mb-2">Domain <span class="text-purple-500">Intelligence</span></h1>
-        <p class="text-zinc-400">Analyze WHOIS data, DNS records, and surface-level asset information.</p>
+        <p class="text-zinc-400">Analyze WHOIS data, DNS records, certificate transparency, and RDAP information.</p>
     </div>
 
     <div class="glass p-6 rounded-2xl mb-8">
         <div class="flex flex-col md:flex-row gap-4">
-            <input type="text" id="domain-input" placeholder="Enter Domain (e.g. google.com)" 
+            <input type="text" id="domain-input" placeholder="Enter Domain (e.g. example.com)" 
                    class="flex-grow bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 mono">
             <button onclick="runDomainLookup()" class="bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2">
                 <i class="fa-solid fa-magnifying-glass"></i> Analyze Domain
             </button>
+            <button onclick="runCerts()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-lg font-bold transition-all">Check Certs</button>
+            <button onclick="runDoH()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-lg font-bold transition-all">DoH Lookup</button>
+            <button onclick="runRDAP()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-lg font-bold transition-all">RDAP</button>
         </div>
         
         <div class="mt-6">
@@ -37,13 +40,13 @@
             </div>
         </div>
 
-        <!-- DNS Section -->
+        <!-- DNS/Extras Section -->
         <div class="glass p-6 rounded-2xl border-t-4 border-blue-500">
             <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-server text-blue-500"></i> DNS Records
+                <i class="fa-solid fa-server text-blue-500"></i> DNS / Certs / RDAP
             </h3>
-            <div id="dns-data" class="space-y-4">
-                <!-- DNS groups -->
+            <div id="dns-data" class="space-y-4 text-xs mono">
+                <!-- DNS/CERT/RDAP groups -->
             </div>
         </div>
     </div>
@@ -100,6 +103,45 @@
 
             resultsDiv.classList.remove('hidden');
         });
+    }
+
+    async function runCerts() {
+        const domain = document.getElementById('domain-input').value;
+        if (!domain) return alert("Please enter a domain");
+        const res = await fetch(`/api/crtsh/${domain}`);
+        const data = await res.json();
+        const dnsDiv = document.getElementById('dns-data');
+        dnsDiv.innerHTML = '';
+        if (Array.isArray(data)) {
+            dnsDiv.innerHTML = `<div class="text-xs mono">Found ${data.length} cert entries. Showing raw JSON in console.</div>`;
+            console.log('crt.sh results', data.slice(0,20));
+        } else if (data.error) {
+            dnsDiv.innerHTML = `<div class="text-xs text-red-400 mono">crt.sh error: ${data.error}</div>`;
+        } else {
+            dnsDiv.innerHTML = `<pre class="text-xs mono">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+    }
+
+    async function runDoH() {
+        const domain = document.getElementById('domain-input').value;
+        if (!domain) return alert("Please enter a domain");
+        const res = await fetch(`/api/doh/${domain}`);
+        const data = await res.json();
+        const dnsDiv = document.getElementById('dns-data');
+        dnsDiv.innerHTML = `<pre class="text-xs mono">${JSON.stringify(data, null, 2)}</pre>`;
+    }
+
+    async function runRDAP() {
+        const domain = document.getElementById('domain-input').value;
+        if (!domain) return alert("Please enter a domain");
+        const res = await fetch(`/api/rdap/${domain}`);
+        const data = await res.json();
+        const dnsDiv = document.getElementById('dns-data');
+        if (data.error) {
+            dnsDiv.innerHTML = `<div class="text-xs text-red-400 mono">RDAP error: ${data.error}</div>`;
+        } else {
+            dnsDiv.innerHTML = `<pre class="text-xs mono">${JSON.stringify(data, null, 2)}</pre>`;
+        }
     }
 </script>
 {% endblock %}
