@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="text-center mb-12">
+        <h1 class="text-5xl font-extrabold mb-4 tracking-tight">Welcome to <span class="gradient-text">Nexus Intelligence</span></h1>
+        <p class="text-zinc-400 text-lg max-w-2xl mx-auto">
+            A professional-grade open source intelligence framework designed for rapid reconnaissance and digital footprint analysis.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass p-6 rounded-2xl hover:neon-border transition-all group cursor-pointer" onclick="window.location.href='/ip-lookup'">
+            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-500/40 transition-colors">
+                <i class="fa-solid fa-location-dot text-blue-500 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">IP Intelligence</h3>
+            <p class="text-zinc-400 text-sm">Geolocation, ASN lookup, and abuse database checks for any IPv4 address.</p>
+            <div class="mt-4 text-blue-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                Launch Tool <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </div>
+
+        <div class="glass p-6 rounded-2xl hover:neon-border transition-all group cursor-pointer" onclick="window.location.href='/domain-lookup'">
+            <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-500/40 transition-colors">
+                <i class="fa-solid fa-globe text-purple-500 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Domain Intelligence</h3>
+            <p class="text-zinc-400 text-sm">WHOIS data, DNS record enumeration, and website technology analysis.</p>
+            <div class="mt-4 text-purple-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                Launch Tool <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </div>
+
+        <div class="glass p-6 rounded-2xl hover:neon-border transition-all group cursor-pointer" onclick="window.location.href='/identity-lookup'">
+            <div class="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-emerald-500/40 transition-colors">
+                <i class="fa-solid fa-user-secret text-emerald-500 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Identity Lookup</h3>
+            <p class="text-zinc-400 text-sm">Cross-platform username search to map social media footprints.</p>
+            <div class="mt-4 text-emerald-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                Launch Tool <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-12 glass p-8 rounded-2xl border-blue-500/20">
+        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-blue-500"></i> Investigation Guidelines
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-zinc-400 text-sm">
+            <div class="flex gap-3">
+                <i class="fa-solid fa-check text-emerald-500 mt-1"></i>
+                <p>Always verify results across multiple sources to avoid false positives.</p>
+            </div>
+            <div class="flex gap-3">
+                <i class="fa-solid fa-check text-emerald-500 mt-1"></i>
+                <p>Use VPNs and proxies when conducting active reconnaissance.</p>
+            </div>
+            <div class="flex gap-3">
+                <i class="fa-solid fa-check text-emerald-500 mt-1"></i>
+                <p>Respect the terms of service of the platforms being queried.</p>
+            </div>
+            <div class="flex gap-3">
+                <i class="fa-solid fa-check text-emerald-500 mt-1"></i>
+                <p>Document all findings with timestamps and source URLs for auditing.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
